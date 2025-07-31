@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aarogya Mitra</title>
+    <style>
+        :root {
+            --body-bg: #f0f2f5;
+            --chat-bg: #ffffff;
+            --user-msg-bg: #0084ff;
+            --ai-msg-bg: #e4e6eb;
+            --text-color-light: #ffffff;
+            --text-color-dark: #050505;
+            --border-color: #ced0d4;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--body-bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 90vh;
+            max-height: 800px;
+            background-color: var(--chat-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        header {
+            background-color: var(--user-msg-bg);
+            color: var(--text-color-light);
+            padding: 16px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .chat-window {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message {
+            padding: 10px 14px;
+            border-radius: 18px;
+            max-width: 75%;
+            line-height: 1.4;
+        }
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: var(--text-color-light);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .ai-message {
+            background-color: var(--ai-msg-bg);
+            color: var(--text-color-dark);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .loading {
+            align-self: flex-start;
+            color: #65676b;
+        }
+        .message-form {
+            display: flex;
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        #message-input {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            outline: none;
+        }
+        #message-input:focus {
+            border-color: var(--user-msg-bg);
+        }
+        #send-button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0 16px;
+            color: var(--user-msg-bg);
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <header>Aarogya Mitra</header>
+        <div class="chat-window" id="chat-window">
+            <div class="message ai-message">
+                Welcome! I am Aarogya Mitra, your AI health guide. How can I help you today?
+            </div>
+        </div>
+        <form class="message-form" id="message-form">
+            <input type="text" id="message-input" placeholder="Ask a health question..." autocomplete="off">
+            <button type="submit" id="send-button" title="Send">➔</button>
+        </form>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // PASTE YOUR RELAY.AI WEBHOOK URL HERE
+        const webhookUrl = 'https://hook.relay.app/api/v1/playbook/cmdrk12a703sz0pkqfuaoblbs/trigger/4A5o6y_JlaF5Z000QoQPgg';
+        // ---------------------
+
+        const form = document.getElementById('message-form');
+        const input = document.getElementById('message-input');
+        const chatWindow = document.getElementById('chat-window');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent page reload
+
+            const userMessage = input.value.trim();
+            if (!userMessage) return; // Don't send empty messages
+
+            // 1. Display user's message immediately
+            addMessageToChat(userMessage, 'user');
+            input.value = ''; // Clear the input field
+
+            // 2. Show a loading indicator
+            const loadingIndicator = addMessageToChat('Aarogya Mitra is typing...', 'loading');
+
+            try {
+                // 3. Send the message to the AI agent
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                // Remove loading indicator
+                loadingIndicator.remove();
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+
+                const data = await response.json();
+                const aiReply = data.ai_reply;
+
+                // 4. Display AI's response
+                addMessageToChat(aiReply, 'ai');
+
+            } catch (error) {
+                console.error('Error:', error);
+                // Remove loading indicator even if there's an error
+                if(loadingIndicator) loadingIndicator.remove();
+                addMessageToChat('Sorry, I seem to be having some trouble connecting. Please try again later.', 'ai');
+            }
+        });
+
+        function addMessageToChat(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', `${sender}-message`);
+            // To prevent HTML injection, we use innerText
+            messageElement.innerText = text;
+            chatWindow.appendChild(messageElement);
+
+            // Scroll to the bottom to see the new message
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return messageElement;
+        }
+
+    </script>
+</body>
+</html>

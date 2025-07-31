@@ -2,7 +2,7 @@
 
 Aarogya Mitra is an AI-powered public health guide designed to combat medical misinformation and provide accessible, reliable health information to citizens in India. It acts as a trustworthy first point of contact, helping users make informed decisions about their health by debunking myths and answering basic health queries with verified information.
 
-This project was developed as part of the IBM SkillBuild AI Agent Certification Program and aligns with **UN SDG 3: Good Health & Well-being**.
+This project was developed from a problem statement that  aligns with **UN SDG 3: Good Health & Well-being**.
 
 ---
 
